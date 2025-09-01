@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حجز طيران</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #09343a;
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    max-width: 500px;
+    margin: 50px auto;
+    background: #926969;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+  h2 {
+    text-align: center;
+    color: #00796b;
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    color: #004d40;
+  }
+  input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 8px;
+    border: 1px solid #b2dfdb;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background: #00796b;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  button:hover {
+    background: #004d40;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>حجز طيران</h2>
+  <form>
+    <label for="from">من:</label>
+    <input type="text" id="from" name="from" placeholder="أدخل المدينة">
+
+    <label for="to">إلى:</label>
+    <input type="text" id="to" name="to" placeholder="أدخل المدينة">
+
+    <label for="depart">تاريخ المغادرة:</label>
+    <input type="date" id="depart" name="depart">
+
+    <label for="return">تاريخ العودة:</label>
+    <input type="date" id="return" name="return">
+
+    <label for="passengers">عدد الركاب:</label>
+    <select id="passengers" name="passengers">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+    </select>
+
+    <button type="submit">احجز الآن</button>
+  </form>
+</div>
+
+</body>
+</html>
