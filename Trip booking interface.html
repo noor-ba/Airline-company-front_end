@@ -1,0 +1,244 @@
+<!--
+Trip Booking UI (single-file HTML + CSS + JS)
+Features:
+- Top header with search/filter
+- Trip cards (select a trip)
+- Seat map with selectable seats (click to select/deselect)
+- Summary panel showing selected trip, seats, total price
+- Responsive layout
+
+How to use: save this content to a file named `trip-booking.html` and open in a browser.
+-->
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>واجهة حجز الرحلة</title>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --muted:#6b7280; --accent:#2563eb; --accent-2:#06b6d4; --success:#16a34a;
+      --seat-available:#e6eefc; --seat-taken:#e0e0e0; --seat-selected:#2563eb; 
+      font-family: Inter, 'Segoe UI', Tahoma, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg, var(--bg), #eef3ff); color:#111827;}
+    .container{max-width:1100px;margin:28px auto;padding:20px;}
+
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo .mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+    .search{flex:1;margin:0 18px;display:flex;gap:8px}
+    .search input{flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e6e9f0;background:white}
+    .toggle{padding:8px 12px;border-radius:10px;background:var(--card);border:1px solid #e6e9f0}
+
+    main{display:grid;grid-template-columns:1fr 420px;gap:20px}
+
+    /* left column */
+    .panel{background:var(--card);padding:18px;border-radius:14px;box-shadow:0 6px 18px rgba(20,20,50,0.06)}
+    .trips{display:flex;flex-direction:column;gap:12px}
+    .trip{display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:all .18s}
+    .trip:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(37,99,235,0.06)}
+    .trip.active{border-color:rgba(37,99,235,0.18);box-shadow:0 10px 30px rgba(37,99,235,0.06)}
+    .trip .meta{display:flex;gap:12px;align-items:center}
+    .trip .route{font-weight:600}
+    .trip .time{color:var(--muted)}
+    .price{font-weight:700;color:var(--accent)}
+
+    /* seat map */
+    .seat-section{display:flex;gap:18px;align-items:flex-start;margin-top:14px}
+    .seatmap{background:linear-gradient(180deg,#ffffff, #fbfdff);padding:16px;border-radius:12px;border:1px solid #eef2ff;width:100%}
+    .screen{background:#e8f0ff;color:#0f172a;font-size:13px;padding:8px;border-radius:8px;text-align:center;margin-bottom:10px}
+    .seats{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+    .seat{padding:8px 4px;border-radius:6px;text-align:center;font-size:13px;background:var(--seat-available);cursor:pointer;border:1px solid rgba(0,0,0,0.03);user-select:none}
+    .seat.taken{background:var(--seat-taken);cursor:not-allowed;color:#7b7b7b}
+    .seat.selected{background:var(--seat-selected);color:white;font-weight:600}
+
+    .legend{display:flex;gap:12px;align-items:center;margin-top:10px}
+    .legend span{display:inline-flex;gap:8px;align-items:center}
+    .box{width:14px;height:12px;border-radius:3px}
+
+    /* right column */
+    .summary{position:sticky;top:20px}
+    .summary h3{margin:0 0 8px 0}
+    .summary .list{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+    .summary .cta{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+    .btn{padding:10px 14px;border-radius:10px;border:0;background:var(--accent);color:white;font-weight:600;cursor:pointer}
+    .btn.secondary{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,0.12)}
+
+    /* small screens */
+    @media(max-width:900px){main{grid-template-columns:1fr;}.summary{position:static}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo"><div class="mark">ح</div><div><strong>حجز الرحلات</strong><div style="color:var(--muted);font-size:13px">ابحث واختر المقعد بسهولة</div></div></div>
+      <div class="search">
+        <input id="searchInput" placeholder="الوجهة أو اسم الرحلة..." />
+        <div class="toggle">تصفية ▾</div>
+      </div>
+    </header>
+
+    <main>
+      <div>
+        <div class="panel">
+          <h2 style="margin:0 0 8px 0">الرحلات المتاحة</h2>
+          <div class="trips" id="tripsList">
+            <!-- Trip cards injected here -->
+          </div>
+
+          <div class="seat-section">
+            <div class="seatmap" style="flex:1">
+              <div class="screen">شاشة الطائرة</div>
+              <div class="seats" id="seatGrid">
+                <!-- seats injected -->
+              </div>
+
+              <div class="legend">
+                <span><i class="box" style="background:var(--seat-available)"></i> متاح</span>
+                <span><i class="box" style="background:var(--seat-selected)"></i> مختار</span>
+                <span><i class="box" style="background:var(--seat-taken)"></i> محجوز</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="summary panel summary">
+        <h3>ملخص الحجز</h3>
+        <div id="selectedTripArea">لم تختَر رحلة بعد</div>
+        <div class="list" id="selectedSeatsArea"></div>
+        <div style="border-top:1px dashed #e6eefc;padding-top:12px;margin-top:8px">
+          <div style="display:flex;justify-content:space-between;color:var(--muted)"><div>المبلغ الجزئي</div><div id="subtotal">0 د.ع</div></div>
+          <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:8px"><div>المجموع</div><div id="total">0 د.ع</div></div>
+        </div>
+
+        <div class="cta">
+          <button class="btn" id="continueBtn" disabled>المتابعة للدفع</button>
+          <button class="btn secondary" id="resetBtn">إعادة اختيار</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    // Sample data for trips and seats
+    const trips = [
+      {id:1, route:'بغداد — دبي', time:'08:30 - 10:45', price:120, seatsTaken: [3,4,12,13]},
+      {id:2, route:'بغداد — اسطنبول', time:'11:00 - 14:00', price:180, seatsTaken: [7,8,9,27]},
+      {id:3, route:'بغداد — القاهرة', time:'16:20 - 18:10', price:95, seatsTaken: [1,2,5,6,20]}
+    ];
+
+    const rows = 8; // 8 rows x 8 cols = 64 seats
+    const cols = 8;
+
+    let activeTrip = null;
+    let selectedSeats = new Set();
+
+    const tripsList = document.getElementById('tripsList');
+    const seatGrid = document.getElementById('seatGrid');
+    const selectedTripArea = document.getElementById('selectedTripArea');
+    const selectedSeatsArea = document.getElementById('selectedSeatsArea');
+    const subtotalEl = document.getElementById('subtotal');
+    const totalEl = document.getElementById('total');
+    const continueBtn = document.getElementById('continueBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    function formatCurrency(n){ return n + ' د.ع'; }
+
+    function renderTrips(filter=''){
+      tripsList.innerHTML='';
+      trips.filter(t=>t.route.includes(filter) || t.time.includes(filter)).forEach(t=>{
+        const div = document.createElement('div');
+        div.className='trip'+(activeTrip && activeTrip.id===t.id?' active':'');
+        div.innerHTML = `<div class='meta'><div>
+                        <div class='route'>${t.route}</div>
+                        <div class='time'>${t.time}</div>
+                        </div></div>
+                        <div class='price'>${formatCurrency(t.price)}</div>`;
+        div.onclick = ()=>{ selectTrip(t.id); };
+        tripsList.appendChild(div);
+      })
+    }
+
+    function renderSeats(){
+      seatGrid.innerHTML = '';
+      // render seats row-major
+      for(let i=0;i<rows*cols;i++){
+        const btn = document.createElement('div');
+        btn.className='seat';
+        btn.dataset.seat = i+1;
+        btn.innerText = (Math.floor(i/cols)+1) + String.fromCharCode(65 + (i%cols)); // e.g. 1A,1B
+
+        if(activeTrip && activeTrip.seatsTaken.includes(i+1)){
+          btn.classList.add('taken');
+        } else if(selectedSeats.has(i+1)){
+          btn.classList.add('selected');
+        }
+
+        btn.onclick = (ev)=>{
+          ev.stopPropagation();
+          if(btn.classList.contains('taken')) return;
+          const seatNum = Number(btn.dataset.seat);
+          if(selectedSeats.has(seatNum)) selectedSeats.delete(seatNum);
+          else selectedSeats.add(seatNum);
+          renderSeats();
+          updateSummary();
+        }
+
+        seatGrid.appendChild(btn);
+      }
+    }
+
+    function selectTrip(id){
+      activeTrip = trips.find(t=>t.id===id);
+      selectedSeats.clear();
+      renderTrips();
+      renderSeats();
+      updateSummary();
+    }
+
+    function updateSummary(){
+      selectedTripArea.innerHTML = activeTrip ? `<strong>${activeTrip.route}</strong><div style='color:var(--muted)'>${activeTrip.time}</div>` : 'لم تختَر رحلة بعد';
+      selectedSeatsArea.innerHTML = '';
+      let subtotal = 0;
+      if(selectedSeats.size===0){
+        const p = document.createElement('div'); p.style.color='var(--muted)'; p.innerText='لم تختَر مقاعد بعد'; selectedSeatsArea.appendChild(p);
+      } else {
+        Array.from(selectedSeats).sort((a,b)=>a-b).forEach(s=>{
+          const row = Math.floor((s-1)/cols)+1;
+          const col = String.fromCharCode(65 + ((s-1)%cols));
+          const item = document.createElement('div');
+          item.style.display='flex';item.style.justifyContent='space-between';item.style.alignItems='center';
+          item.innerHTML = `<div>مقعد ${row}${col}</div><div style='font-weight:700'>${formatCurrency(activeTrip?activeTrip.price:0)}</div>`;
+          selectedSeatsArea.appendChild(item);
+          subtotal += (activeTrip?activeTrip.price:0);
+        })
+      }
+      subtotalEl.innerText = formatCurrency(subtotal);
+      totalEl.innerText = formatCurrency(subtotal); // no fees for demo
+
+      continueBtn.disabled = !(activeTrip && selectedSeats.size>0);
+    }
+
+    resetBtn.onclick = ()=>{ activeTrip=null; selectedSeats.clear(); renderTrips(); renderSeats(); updateSummary(); }
+
+    // initial render
+    renderTrips();
+    renderSeats();
+    updateSummary();
+
+    // search filter
+    document.getElementById('searchInput').addEventListener('input', (e)=>{ renderTrips(e.target.value.trim()); });
+
+    // click continue -> show alert (in real app navigate to payment)
+    continueBtn.addEventListener('click', ()=>{
+      if(!activeTrip||selectedSeats.size===0) return;
+      const seats = Array.from(selectedSeats).sort((a,b)=>a-b).map(s=> Math.floor((s-1)/cols+1) + String.fromCharCode(65 + ((s-1)%cols)) ).join(', ');
+      alert(`تأكيد\nالرحلة: ${activeTrip.route} (${activeTrip.time})\nالمقاعد: ${seats}\nالمجموع: ${totalEl.innerText}`);
+    });
+  </script>
+</body>
+</html>
